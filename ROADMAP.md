@@ -16,6 +16,12 @@ Objective:
 
 Establish the project's engineering foundation, documentation, architecture, and core platform framework.
 
+### Initial Platform Target
+
+The initial implementation targets Windows in order to accelerate development and establish a stable architectural foundation.
+
+Cross-platform support remains a core project objective and will be introduced through additional providers, agents, and user interfaces as the platform matures.
+
 Key Deliverables:
 
 * Project documentation
