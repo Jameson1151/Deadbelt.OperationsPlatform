@@ -1,3 +1,4 @@
+using System.Windows;
 using Deadbelt.Desktop.ViewModels;
 using Deadbelt.Desktop.Views;
 
@@ -5,10 +6,14 @@ namespace Deadbelt.Desktop.Services;
 
 public sealed class WorkspaceDialogService : IWorkspaceDialogService
 {
-    public WorkspaceDialogResult ShowCreateWorkspaceDialog()
+    public WorkspaceDialogResult ShowCreateWorkspaceDialog(Window owner)
     {
         var viewModel = new CreateWorkspaceViewModel();
-        var window = new CreateWorkspaceWindow(viewModel);
+
+        var window = new CreateWorkspaceWindow(viewModel)
+        {
+            Owner = owner
+        };
 
         var result = window.ShowDialog();
 

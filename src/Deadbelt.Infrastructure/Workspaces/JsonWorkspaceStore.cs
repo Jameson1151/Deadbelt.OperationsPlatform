@@ -19,6 +19,14 @@ public sealed class JsonWorkspaceStore : IWorkspaceStore
     {
         Directory.CreateDirectory(workspace.Path);
 
+        var workspaceFilePath = Path.Combine(workspace.Path, WorkspaceFileName);
+
+        if (File.Exists(workspaceFilePath))
+        {
+            throw new InvalidOperationException(
+                $"A workspace already exists at '{workspace.Path}'.");
+        }
+
         var metadata = new WorkspaceMetadata
         {
             Name = workspace.Name,
@@ -26,8 +34,6 @@ public sealed class JsonWorkspaceStore : IWorkspaceStore
             CreatedUtc = workspace.CreatedUtc,
             Version = workspace.Version
         };
-
-        var workspaceFilePath = Path.Combine(workspace.Path, WorkspaceFileName);
 
         await using var stream = File.Create(workspaceFilePath);
 

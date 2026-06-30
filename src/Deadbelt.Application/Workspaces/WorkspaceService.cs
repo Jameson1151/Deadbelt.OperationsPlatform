@@ -1,3 +1,4 @@
+using System.IO;
 using Deadbelt.Domain.Workspaces;
 using Microsoft.Extensions.Logging;
 
@@ -28,6 +29,9 @@ public sealed class WorkspaceService : IWorkspaceService
         if (string.IsNullOrWhiteSpace(request.FolderPath))
             return CreateWorkspaceResult.Failure("Workspace folder is required.");
 
+        if (!IsValidFolderPath(request.FolderPath))
+            return CreateWorkspaceResult.Failure("Workspace folder must be a valid full path.");
+
         try
         {
             var workspace = new Workspace(
@@ -46,12 +50,48 @@ public sealed class WorkspaceService : IWorkspaceService
 
             return CreateWorkspaceResult.Success(workspace);
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Workspace creation validation failed.");
+
+            return CreateWorkspaceResult.Failure(ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create workspace.");
 
             return CreateWorkspaceResult.Failure(
                 "Failed to create workspace. See logs for details.");
+        }
+    }
+
+    private static bool IsValidFolderPath(string folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath))
+            return false;
+
+        try
+        {
+            var trimmedPath = folderPath.Trim();
+
+            if (!Path.IsPathFullyQualified(trimmedPath))
+                return false;
+
+            var root = Path.GetPathRoot(trimmedPath);
+
+            if (string.IsNullOrWhiteSpace(root))
+                return false;
+
+            if (!Directory.Exists(root))
+                return false;
+
+            var invalidPathChars = Path.GetInvalidPathChars();
+
+            return trimmedPath.IndexOfAny(invalidPathChars) < 0;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

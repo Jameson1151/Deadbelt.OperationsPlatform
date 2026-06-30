@@ -54,7 +54,15 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private async Task CreateWorkspaceAsync()
     {
-        var dialogResult = _workspaceDialogService.ShowCreateWorkspaceDialog();
+        var owner = System.Windows.Application.Current.MainWindow;
+
+        if (owner is null)
+        {
+            StatusMessage = "Unable to open workspace dialog.";
+            return;
+        }
+
+        var dialogResult = _workspaceDialogService.ShowCreateWorkspaceDialog(owner);
 
         if (!dialogResult.Confirmed)
         {

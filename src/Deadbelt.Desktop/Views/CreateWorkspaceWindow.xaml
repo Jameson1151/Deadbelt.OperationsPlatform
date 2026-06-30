@@ -85,7 +85,8 @@
             <Button Content="Create"
                     Width="110"
                     Style="{StaticResource PrimaryButton}"
+                    Command="{Binding CreateCommand}"
                     Click="Create_Click"/>
-        </StackPanel>
+    </StackPanel>
     </Grid>
 </Window>
