@@ -1,0 +1,97 @@
+using System.IO;
+using Deadbelt.Domain.Workspaces;
+using Microsoft.Extensions.Logging;
+
+namespace Deadbelt.Application.Workspaces;
+
+public sealed class WorkspaceService : IWorkspaceService
+{
+    private const string CurrentWorkspaceVersion = "0.1";
+
+    private readonly IWorkspaceStore _workspaceStore;
+    private readonly ILogger<WorkspaceService> _logger;
+
+    public WorkspaceService(
+        IWorkspaceStore workspaceStore,
+        ILogger<WorkspaceService> logger)
+    {
+        _workspaceStore = workspaceStore;
+        _logger = logger;
+    }
+
+    public async Task<CreateWorkspaceResult> CreateWorkspaceAsync(
+        CreateWorkspaceRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return CreateWorkspaceResult.Failure("Workspace name is required.");
+
+        if (string.IsNullOrWhiteSpace(request.FolderPath))
+            return CreateWorkspaceResult.Failure("Workspace folder is required.");
+
+        if (!IsValidFolderPath(request.FolderPath))
+            return CreateWorkspaceResult.Failure("Workspace folder must be a valid full path.");
+
+        try
+        {
+            var workspace = new Workspace(
+                request.Name,
+                request.FolderPath,
+                request.Description,
+                DateTime.UtcNow,
+                CurrentWorkspaceVersion);
+
+            await _workspaceStore.SaveAsync(workspace, cancellationToken);
+
+            _logger.LogInformation(
+                "Workspace created: {WorkspaceName} at {WorkspacePath}",
+                workspace.Name,
+                workspace.Path);
+
+            return CreateWorkspaceResult.Success(workspace);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Workspace creation validation failed.");
+
+            return CreateWorkspaceResult.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create workspace.");
+
+            return CreateWorkspaceResult.Failure(
+                "Failed to create workspace. See logs for details.");
+        }
+    }
+
+    private static bool IsValidFolderPath(string folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath))
+            return false;
+
+        try
+        {
+            var trimmedPath = folderPath.Trim();
+
+            if (!Path.IsPathFullyQualified(trimmedPath))
+                return false;
+
+            var root = Path.GetPathRoot(trimmedPath);
+
+            if (string.IsNullOrWhiteSpace(root))
+                return false;
+
+            if (!Directory.Exists(root))
+                return false;
+
+            var invalidPathChars = Path.GetInvalidPathChars();
+
+            return trimmedPath.IndexOfAny(invalidPathChars) < 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
