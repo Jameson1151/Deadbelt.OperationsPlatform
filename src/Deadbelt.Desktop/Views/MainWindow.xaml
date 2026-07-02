@@ -475,7 +475,7 @@
             </Grid>
           </ScrollViewer>
 
-          <!-- Environments Placeholder -->
+          <!-- Environments -->
           <Grid>
             <Grid.Style>
               <Style TargetType="Grid">
@@ -488,21 +488,171 @@
               </Style>
             </Grid.Style>
 
-            <StackPanel Width="520"
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center">
-              <TextBlock Text="Environments"
-                                       FontSize="28"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource Brush.TextPrimary}"
-                                       TextAlignment="Center"/>
+            <Grid Margin="30">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
 
-              <TextBlock Text="Environment management is not implemented yet."
-                                       FontSize="15"
-                                       Foreground="{StaticResource Brush.TextSecondary}"
-                                       TextAlignment="Center"
-                                       Margin="0,12,0,0"/>
-            </StackPanel>
+              <Grid Grid.Row="0"
+              Margin="0,0,0,25">
+
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                  <TextBlock Text="Environments"
+                           FontSize="28"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource Brush.TextPrimary}"/>
+
+                  <TextBlock Text="Create and manage game server environments in this workspace."
+                           FontSize="15"
+                           Foreground="{StaticResource Brush.TextSecondary}"
+                           Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                    Content="Create Environment"
+                    Command="{Binding CreateEnvironmentCommand}"
+                    Style="{StaticResource PrimaryButton}"
+                    Width="180"
+                    VerticalAlignment="Center"/>
+              </Grid>
+
+              <Grid Grid.Row="1">
+
+                <!-- Empty State -->
+                <Border Background="{StaticResource Brush.Surface}"
+                    BorderBrush="{StaticResource Brush.Border}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="30"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top">
+
+                  <Border.Style>
+                    <Style TargetType="Border">
+                      <Setter Property="Visibility" Value="Visible"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasEnvironments}" Value="True">
+                          <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </Border.Style>
+
+                  <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Width="520">
+
+                    <TextBlock Text="No environments configured"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource Brush.TextPrimary}"
+                               TextAlignment="Center"/>
+
+                    <TextBlock Text="Create your first environment to begin organizing game server configuration, providers, jobs, and future deployment state."
+                               FontSize="15"
+                               Foreground="{StaticResource Brush.TextSecondary}"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,12,0,24"/>
+
+                    <Button Content="Create Environment"
+                            Command="{Binding CreateEnvironmentCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Width="190"/>
+                  </StackPanel>
+                </Border>
+
+                <!-- Environment List -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+
+                  <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer">
+                      <Setter Property="Visibility" Value="Collapsed"/>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasEnvironments}" Value="True">
+                          <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </ScrollViewer.Style>
+
+                  <ItemsControl ItemsSource="{Binding Environments}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Border Background="{StaticResource Brush.Surface}"
+                                    BorderBrush="{StaticResource Brush.Border}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="18"
+                                    Margin="0,0,0,12">
+
+                          <Grid>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="2*"/>
+                              <ColumnDefinition Width="*"/>
+                              <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                              <TextBlock Text="{Binding Name}"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource Brush.TextPrimary}"/>
+
+                              <TextBlock Text="{Binding Description}"
+                                                   FontSize="13"
+                                                   Foreground="{StaticResource Brush.TextSecondary}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,4,0,0"/>
+
+                              <TextBlock Text="{Binding EnvironmentPath}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource Brush.TextMuted}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,10,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1"
+                                                Margin="20,0,0,0">
+
+                              <TextBlock Text="Game Type"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource Brush.TextMuted}"/>
+
+                              <TextBlock Text="{Binding GameType}"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource Brush.TextPrimary}"
+                                                   Margin="0,4,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2"
+                                                Margin="20,0,0,0">
+
+                              <TextBlock Text="Status"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource Brush.TextMuted}"/>
+
+                              <TextBlock Text="{Binding Status}"
+                                                   FontSize="14"
+                                                   Foreground="{StaticResource Brush.AccentGreen}"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,4,0,0"/>
+                            </StackPanel>
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Grid>
+            </Grid>
           </Grid>
 
           <!-- Providers Placeholder -->

@@ -24,6 +24,7 @@ public static class Bootstrapper
 
                 services.AddSingleton<IEnvironmentStore, JsonEnvironmentStore>();
                 services.AddSingleton<IEnvironmentService, EnvironmentService>();
+                services.AddSingleton<IEnvironmentDialogService, EnvironmentDialogService>();
 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<MainWindow>();

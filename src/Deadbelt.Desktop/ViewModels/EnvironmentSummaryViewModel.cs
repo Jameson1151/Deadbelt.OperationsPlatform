@@ -1,0 +1,46 @@
+using Deadbelt.Domain.Environments;
+using DOPEnvironment = Deadbelt.Domain.Environments.Environment;
+
+namespace Deadbelt.Desktop.ViewModels;
+
+public sealed class EnvironmentSummaryViewModel
+{
+    private EnvironmentSummaryViewModel(
+        string id,
+        string name,
+        string description,
+        GameType gameType,
+        EnvironmentStatus status,
+        string environmentPath)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+        GameType = gameType;
+        Status = status;
+        EnvironmentPath = environmentPath;
+    }
+
+    public string Id { get; }
+
+    public string Name { get; }
+
+    public string Description { get; }
+
+    public GameType GameType { get; }
+
+    public EnvironmentStatus Status { get; }
+
+    public string EnvironmentPath { get; }
+
+    public static EnvironmentSummaryViewModel FromEnvironment(DOPEnvironment environment)
+    {
+        return new EnvironmentSummaryViewModel(
+            environment.Id.ToString(),
+            environment.Name,
+            environment.Description,
+            environment.GameType,
+            environment.Status,
+            environment.EnvironmentPath);
+    }
+}
