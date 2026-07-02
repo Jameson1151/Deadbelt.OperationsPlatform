@@ -97,6 +97,88 @@ The environment folder name is generated from the Environment name using a safe 
 becomes:
 
     production-dayz
+	
+## Create Environment UI Workflow
+
+The desktop application now includes an initial Create Environment workflow.
+
+When a Workspace is active, the user can navigate to the Environments section and create a new Environment from the desktop UI.
+
+The workflow is:
+
+    Active Workspace
+        ↓
+    Environments Section
+        ↓
+    Create Environment Dialog
+        ↓
+    IEnvironmentService
+        ↓
+    EnvironmentService
+        ↓
+    IEnvironmentStore
+        ↓
+    JsonEnvironmentStore
+        ↓
+    environment.json
+
+The Desktop UI does not create `environment.json` directly. It collects user input and calls the Application layer through `IEnvironmentService`.
+
+### Create Environment Dialog
+
+The initial dialog captures:
+
+- Environment name
+- Game type
+- Optional description
+
+The Environment name and Game type are required.
+
+The initial supported game types are:
+
+- DayZ
+- Minecraft
+- Rust
+- ArmaReforger
+- Custom
+
+The `Unknown` game type is excluded from the dialog because it is reserved for unset, invalid, or fallback states.
+
+## Environment Display
+
+After an Environment is created, it is displayed in the Environments section of the active Workspace shell.
+
+The initial display includes:
+
+- Environment name
+- Description
+- Game type
+- Status
+- Environment path
+
+The current UI keeps the created Environment in memory for the active application session.
+
+## Current UI Scope
+
+The Create Environment UI workflow currently supports:
+
+- Creating an Environment while a Workspace is active
+- Writing `environment.json`
+- Displaying the newly created Environment in the UI
+- Showing an empty state when no Environments exist
+
+The following are still out of scope:
+
+- Loading existing Environments from disk when opening a Workspace
+- Editing Environments
+- Deleting Environments
+- Environment detail pages
+- Provider configuration
+- Game-specific configuration
+- Mod management
+- Deployment
+- Job execution
+- Desired-state comparison
 
 ### Environment Metadata File
 

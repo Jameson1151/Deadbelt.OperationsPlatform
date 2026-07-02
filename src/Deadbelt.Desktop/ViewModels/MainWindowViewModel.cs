@@ -1,5 +1,7 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using Deadbelt.Application.Environments;
 using Deadbelt.Application.Workspaces;
 using Deadbelt.Desktop.MVVM;
 using Deadbelt.Desktop.Services;
@@ -17,6 +19,8 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     private readonly IWorkspaceService _workspaceService;
     private readonly IWorkspaceDialogService _workspaceDialogService;
+    private readonly IEnvironmentService _environmentService;
+    private readonly IEnvironmentDialogService _environmentDialogService;
 
     private Workspace? _activeWorkspace;
 
@@ -27,13 +31,21 @@ public sealed class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(
         IWorkspaceService workspaceService,
-        IWorkspaceDialogService workspaceDialogService)
+        IWorkspaceDialogService workspaceDialogService,
+        IEnvironmentService environmentService,
+        IEnvironmentDialogService environmentDialogService)
     {
         _workspaceService = workspaceService;
         _workspaceDialogService = workspaceDialogService;
+        _environmentService = environmentService;
+        _environmentDialogService = environmentDialogService;
 
         CreateWorkspaceCommand = new AsyncRelayCommand(CreateWorkspaceAsync);
         OpenWorkspaceCommand = new AsyncRelayCommand(OpenWorkspaceAsync);
+
+        CreateEnvironmentCommand = new AsyncRelayCommand(
+            CreateEnvironmentAsync,
+            () => IsWorkspaceOpen);
 
         NavigateOverviewCommand = new RelayCommand(() => NavigateTo(OverviewSection));
         NavigateEnvironmentsCommand = new RelayCommand(() => NavigateTo(EnvironmentsSection));
@@ -53,6 +65,12 @@ public sealed class MainWindowViewModel : ViewModelBase
     public string ActiveWorkspacePath => _activeWorkspace?.Path ?? string.Empty;
 
     public string ActiveWorkspaceVersion => _activeWorkspace?.Version ?? string.Empty;
+
+    public ObservableCollection<EnvironmentSummaryViewModel> Environments { get; } = [];
+
+    public int EnvironmentCount => Environments.Count;
+
+    public bool HasEnvironments => Environments.Count > 0;
 
     public string SelectedNavigationSection
     {
@@ -101,6 +119,8 @@ public sealed class MainWindowViewModel : ViewModelBase
     public ICommand CreateWorkspaceCommand { get; }
 
     public ICommand OpenWorkspaceCommand { get; }
+
+    public AsyncRelayCommand CreateEnvironmentCommand { get; }
 
     public ICommand NavigateOverviewCommand { get; }
 
@@ -198,9 +218,70 @@ public sealed class MainWindowViewModel : ViewModelBase
         SetActiveWorkspace(result.Workspace, "Workspace opened.");
     }
 
+    private async Task CreateEnvironmentAsync()
+    {
+        if (_activeWorkspace is null)
+        {
+            StatusMessage = "No workspace is currently open.";
+            return;
+        }
+
+        var owner = System.Windows.Application.Current.MainWindow;
+
+        if (owner is null)
+        {
+            StatusMessage = "Unable to open environment dialog.";
+            return;
+        }
+
+        var dialogResult = _environmentDialogService.ShowCreateEnvironmentDialog(owner);
+
+        if (!dialogResult.Confirmed)
+        {
+            StatusMessage = "Environment creation cancelled.";
+            return;
+        }
+
+        StatusMessage = "Creating environment...";
+
+        var result = await _environmentService.CreateEnvironmentAsync(
+            new CreateEnvironmentRequest
+            {
+                WorkspacePath = _activeWorkspace.Path,
+                Name = dialogResult.Name,
+                Description = dialogResult.Description,
+                GameType = dialogResult.GameType
+            });
+
+        if (!result.Succeeded || result.Environment is null)
+        {
+            StatusMessage = "Failed to create environment.";
+
+            MessageBox.Show(
+                result.ErrorMessage ?? "Failed to create environment.",
+                "Deadbelt",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+
+            return;
+        }
+
+        Environments.Add(
+            EnvironmentSummaryViewModel.FromEnvironment(result.Environment));
+
+        OnPropertyChanged(nameof(EnvironmentCount));
+        OnPropertyChanged(nameof(HasEnvironments));
+
+        NavigateTo(EnvironmentsSection);
+
+        StatusMessage = "Environment created.";
+    }
+
     private void SetActiveWorkspace(Workspace workspace, string statusMessage)
     {
         _activeWorkspace = workspace;
+
+        Environments.Clear();
 
         WorkspaceStatus = $"Workspace: {workspace.Name}";
         WelcomeMessage = $"Active workspace location: {workspace.Path}";
@@ -212,6 +293,10 @@ public sealed class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(ActiveWorkspaceName));
         OnPropertyChanged(nameof(ActiveWorkspacePath));
         OnPropertyChanged(nameof(ActiveWorkspaceVersion));
+        OnPropertyChanged(nameof(EnvironmentCount));
+        OnPropertyChanged(nameof(HasEnvironments));
+
+        CreateEnvironmentCommand.RaiseCanExecuteChanged();
     }
 
     private void NavigateTo(string section)
