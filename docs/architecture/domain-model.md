@@ -56,35 +56,92 @@ A Workspace contains one or more Environments.
 
 ## Environment
 
-An **Environment** is the primary unit of management in DOP.
+An Environment represents a managed game server environment within a Workspace.
 
-An Environment represents the complete desired state of a game server deployment.
+A Workspace is the top-level organizational boundary in DOP. An Environment is the next major operational boundary inside a Workspace. It is where future game server configuration, provider settings, deployment state, jobs, backups, monitoring, and desired-state definitions will be organized.
 
-Examples:
+An Environment is not just a single server. It represents the intended operational state for a managed game server environment.
 
-```text
-Development
-Testing
-Production
-Event Server
-Experimental
-```
+Examples of future environments may include:
 
-An Environment may contain:
+- Production DayZ Server
+- Test DayZ Server
+- Development Minecraft Server
+- Staging Rust Server
+- Custom Modded Environment
 
-* Servers
-* Configuration
-* Mods
-* Packages
-* Providers
-* Deployments
-* Backups
-* Schedules
-* Monitoring
-* Secrets
-* Extensions
+### Initial Environment Model
 
-The Environment is the most important domain object in the platform.
+The initial Environment domain model includes:
+
+- Environment ID
+- Workspace path reference
+- Environment name
+- Environment description
+- Game type
+- Environment path
+- Created UTC timestamp
+- Environment version
+- Environment status
+
+### Environment ID
+
+Each Environment has a unique identifier represented by `EnvironmentId`.
+
+The ID is used to distinguish environments even if names change later.
+
+### Game Type
+
+The initial `GameType` values are:
+
+- Unknown
+- DayZ
+- Minecraft
+- Rust
+- ArmaReforger
+- Custom
+
+This list is intentionally small and can be expanded as additional game ecosystems are supported.
+
+### Environment Status
+
+The initial `EnvironmentStatus` values are:
+
+- Unknown
+- Draft
+- Active
+- Disabled
+- Archived
+
+These statuses describe the lifecycle state of the Environment from the platform’s perspective.
+
+### Current Scope
+
+The current Environment model is domain-only.
+
+This means the following are intentionally not implemented yet:
+
+- Create Environment UI
+- Environment persistence
+- Environment listing
+- Environment editing
+- Environment deletion
+- Provider configuration
+- Game-specific configuration
+- Mod management
+- Deployment
+- Job execution
+- Desired-state comparison
+
+Those capabilities will be implemented through future issues.
+
+### Relationship to Desired State
+
+The Environment model is an early foundation for DOP’s desired-state architecture.
+
+Future versions of the Environment model will describe what the environment should contain, including providers, configuration, packages, mods, jobs, schedules, backups, and monitoring rules.
+
+The long-term goal is for DOP to compare desired environment state against actual state and determine what actions are needed to bring the environment into compliance.
 
 ---
 
